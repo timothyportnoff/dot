@@ -1,5 +1,6 @@
-# pixlr
-Convert an image to pixel   art
+# dot
+This program will take an image, and add a cool effect. 
 
-This program will enable you to convert a picture into ASCII art. 
-TODO: Fix bug where bottom of image is un-pixelized
+Idk. Probably could be really useful in generating art for a pixel game.
+
+¯\_(ツ)_/¯
