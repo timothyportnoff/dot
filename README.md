@@ -6,10 +6,12 @@ a.out github_logo.png s 20 2
 
 ## Parameters:
 > Argument 1: file name
-> Argument 2: shape of dot 
-> Argument 3: diameter of dot
-> Argument 4: thickness of dot perimeter
 
+> Argument 2: shape of dot 
+
+> Argument 3: diameter of dot
+
+> Argument 4: thickness of dot perimeter
 
 
 
