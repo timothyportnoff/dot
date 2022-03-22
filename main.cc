@@ -1,12 +1,5 @@
-//==================================================================================
-//Student 1 Name: Timothy Portnoff
-//	Student 1's Filter Description:
 //		Step 1: Cutout preset determines what to delete and what to keep
 //		Step 2: If kept, cutout preset shows area for average and border around it
-//		Step 3: Help me
-//Student 2 Name: Timothy Portnoff
-//	Student 2's Filter Description:
-//		Step 1: A filter that Puts quadrouples the image
 //FIXME: Need to expand image because of quality loss
 //TODO: Bring up shadows and highlights to  sharpen the pixel
 //TODO Remove filter
@@ -17,20 +10,21 @@
 #include <iomanip>
 #include <cstdlib>
 #include <cmath>
-#include "filter1.cc"
+#include "filter.h"
 using namespace cimg_library;
 using namespace std;
 
 void filter1(vector<vector<vector<int>>> &vec);
 
-void filter2(vector<vector<vector<int>>> &vec);
-
-void filter3(vector<vector<vector<int>>> &vec);
+void die (string s) {
+	cout << "Program Terminated. " << s << endl;
+	exit(1);
+}
 
 //This code must be run with a command line parameter, so print error and quit if they don't run it right
 void usage() {
-	cout << "Error: this program needs to be called with a command line parameter indicating what file to open.\n";
-	cout << "For example, a.out /public/kyoto.jpg\n";
+	cout << "INCORRECT USAGE: Needs to be called with a.out [pepe.jpg] [s,c] [diameter]\n";
+	cout << "For example, a.out /public/screenshot.jpg c 20\n";
 	exit(1);
 }
 
@@ -63,48 +57,85 @@ void vec_to_image(CImg<unsigned char> &image, vector<vector<vector<int>>> &vec) 
 	}
 }
 
-int main(int argc, char **argv) {
-	if (argc != 2) usage(); //Check command line parameters
+//Makes a shape to apply to the image
+vector <string> make_dot(string dot_shape, unsigned int dot_diameter) {
+	vector<string> punch;
+	if (dot_shape == "s") { // pixel pattern
+		for (unsigned int i = 0; i < dot_diameter; i++) {
+			string s = "";
+			for (unsigned int j = 0; j < dot_diameter; j++) {
+				//cerr << "i: " << i << " | j: " << j << endl;
+				if (i == 0 || i == dot_diameter - 1) s.push_back('X');
+				else if (s.size() == 0 || s.size() == dot_diameter-1) s.push_back('X');
+				else s.push_back('X');
+			}
+			punch.push_back(s);
+		}
+	}
+	else if (dot_shape == "c") { //circle pattern
+		// dist represents distance to the center
+		float dist;
+		float radius = (dot_diameter / 2.0);
 
-	//PHASE 1 - Load the image
-	clock_t start_time = clock(); 
+		// for horizontal movement
+		for (int i = 0; i < dot_diameter; i++) {
+			string s = ""; //String to push back into punch	
+			for (int j = 0; j < dot_diameter; j++) {
+				dist = sqrt((i - radius) * (i - radius) + (j - radius) * (j - radius)) + 1;
+				// dist should be in the range (radius - 0.5) and (radius + 0.5) to print stars(*)
+				if (dist > radius - 0.5 && dist < radius + 0.5) { s.push_back('X'); }
+				else { s.push_back('0'); }
+			}
+			punch.push_back(s);
+		}
+	}
+	//Sets the last value has to be R
+	punch[punch.size() -1][punch.size() -1] = 'R';
+	return punch;
+}
+
+int main(int argc, char **argv) {
+	if (argc != 5) usage(); //Check command line parameters
+
+	//Load the image, make the dot.
+	clock_t start_time = clock();
 	CImg<unsigned char> image(argv[1]);
+
+	//Take in argument for shape
+	string dot_shape = (argv[2]);
+	if (dot_shape != "c" and dot_shape != "s") die("Invalid dot shape");
+	
+	//Take in argument for diameter
+	unsigned int dot_diameter = stoi(argv[3]);
+	if (dot_diameter < 0) die("Diameter must be 0 or above.");
+	vector<string> dot = make_dot(dot_shape, dot_diameter);
+
+	//Take in arg for thickness
+	unsigned int thickness = stoi(argv[4]);
 
 	//Set globals
 	cols = image.width();
 	rows = image.height();
 	stride = cols * rows;
 
-	//Create a new 3D vector to pass to the students' image filter code. even though it is of ints, it is really uint8_t's, any value over 255 will cap at 255
+	//Create a new 3D vector to pass to the image filter code. even though it is of ints, it is really uint8_t's, any value over 255 will cap at 255
 	vector<vector<vector<int>>> vec(cols, vector<vector<int>>(rows, vector<int>(COLORS)));
 	image_to_vec(image, vec); //Copy data from image to vec to make it easier on students
 	clock_t end_time = clock();
 	cerr << "Image load time: " << double (end_time - start_time) / CLOCKS_PER_SEC << " secs\n";
 
-	//PHASE 2 - Run Student 1's Code
+	//Run filter
+	for (string s : dot) cout << s << endl;
 	start_time = clock();
-	filter1(vec);
+	dot_image(vec, dot);
 	end_time = clock();
-	cerr << "Filter 1 time: " << double (end_time - start_time) / CLOCKS_PER_SEC << " secs\n";
-	start_time = clock();
-	vec_to_image(image, vec); //Copy from the vec to the image object
-	//image.save_png("filter1.png"); //Use this for higher quality output
-	image.save_jpeg("filter1.jpg", 100); //Output result after filter 1
-	end_time = clock();
-	cerr << "Time to write filter1.jpg: " << double (end_time - start_time) / CLOCKS_PER_SEC << " secs\n";
+	cerr << "Dot time: " << double (end_time - start_time) / CLOCKS_PER_SEC << " secs\n";
 
-	/*
-	//PHASE 3 - Run Student 2's Code
-	start_time = clock();
-	filter2(vec);
-	end_time = clock();
-	cerr << "Filter 2 time: " << double (end_time - start_time) / CLOCKS_PER_SEC << " secs\n";
-	start_time = clock();
+	//Save image
+	//start_time = clock();
 	vec_to_image(image, vec); //Copy from the vec to the image object
-	//image.save_png("filter2.png"); //Uncomment this for higher quality output
-	image.save_jpeg("filter2.jpg", 100); //Output result after filter 2
+	image.save_png("png.png"); //Use this for higher quality output
+	//image.save_jpeg("dot.jpg", 100); //Output result after filter 1
 	end_time = clock();
-	cerr << "Time to write filter2.jpg: " << double (end_time - start_time) / CLOCKS_PER_SEC << " secs\n";
-*/
+	cerr << "Time to write dot: " << double (end_time - start_time) / CLOCKS_PER_SEC << " secs\n";
 }
-
