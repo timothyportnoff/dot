@@ -5,14 +5,11 @@ This program will take an image, and use parameters to punch out shapes in the i
 a.out github_logo.png s 20 2
 
 ## Parameters:
-> Argument 1: file name
+> a.out file name, shape of dot, diameter of dot, thickness of dot perimeter
 
-> Argument 2: shape of dot 
+## Examples:
 
-> Argument 3: diameter of dot
-
-> Argument 4: thickness of dot perimeter
-
+![png](https://user-images.githubusercontent.com/60923544/159662844-090ccdf0-3e6c-451f-b867-b56c1e52cbbe.png)
 
 
 Colors really pop when you
