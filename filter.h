@@ -1,7 +1,7 @@
 #include <vector>
 #include <iostream>
-#include <iomanip>
-#include <cstdlib>
+//#include <iomanip>
+//#include <cstdlib>
 using namespace std;
 
 //Counts the number of pixels that will be kept and averaged
@@ -22,36 +22,81 @@ void rgb_sum(double&rSum, double&gSum, double&bSum, int i, int j, vector<vector<
 }
 
 //After reading up to the last char in our dot vector, set all colors of type O to the avg
-void paintbucket (int i, int j, vector<vector<vector<int>>> &vec, vector<string> dot, double tint) {	
+void paintbucket (size_t i, size_t j, vector<vector<vector<int>>> &vec, vector<string> dot, double tint) {	
 	//Paintbucket
-	for (int k = (i - dot.size()) + 1; k <= i; k++) {
+	for (size_t k = (i - dot.size()) + 1; k <= i; k++) {
 		if (k < 0) k = 0;
-		for (int l = (j - dot.size()) + 1; l <= j; l++) {
+		for (size_t l = (j - dot.size()) + 1; l <= j; l++) {
 			if (l < 0) l = 0;
+			//Erase
 			if (dot[k % dot.size()][l % dot.size()] == '0') {
-				tint = 0;
-				vec[k][l][RED]   = 0;///numO*tint;
-				vec[k][l][GREEN] = 0;///numO*tint;
-				vec[k][l][BLUE]  = 0;///numO*tint;
+				tint = 0.0;
+				vec[k][l][RED]   = 0;
+				vec[k][l][GREEN] = 0;
+				vec[k][l][BLUE]  = 0;
 			}
 			else if (dot[k % dot.size()][l % dot.size()] == 'L') {
-				tint = .8;
+				tint = 0.8;
 				vec[k][l][RED]   = rSum/numO*tint;
 				vec[k][l][GREEN] = gSum/numO*tint;
 				vec[k][l][BLUE]  = bSum/numO*tint;
 			}
+			//Paint
 			else if (dot[k % dot.size()][l % dot.size()] == 'X') {
-				tint = 1;
+				tint = 1.0;
 				vec[k][l][RED]   = rSum/numO*tint;
 				vec[k][l][GREEN] = gSum/numO*tint;
 				vec[k][l][BLUE]  = bSum/numO*tint;
 			}
+			//??
 			else if (dot[k % dot.size()][l % dot.size()] == 'R') {
-				tint = 0;
+				tint = 0.0;
 				vec[k][l][RED]   = vec[k-1][l-1][RED];
 				vec[k][l][GREEN] = vec[k-1][l-1][GREEN];
 				vec[k][l][BLUE]  = vec[k-1][l-1][BLUE];
 			}
+			//Opacity
+			else if (dot[k % dot.size()][l % dot.size()] == 'O') {
+				tint = 0.5;
+				vec[k][l][RED]   = rSum/numO*tint;
+				vec[k][l][GREEN] = gSum/numO*tint;
+				vec[k][l][BLUE]  = bSum/numO*tint;
+			}
+			else if (dot[k % dot.size()][l % dot.size()] == '9') {
+				tint = 0.9;
+			}
+			else if (dot[k % dot.size()][l % dot.size()] == '8') {
+				tint = 0.8;
+			}
+			else if (dot[k % dot.size()][l % dot.size()] == '7') {
+				tint = 0.7;
+			}
+			else if (dot[k % dot.size()][l % dot.size()] == '6') {
+				tint = 0.6;
+			}
+			else if (dot[k % dot.size()][l % dot.size()] == '5') {
+				tint = 0.5;
+			}
+			else if (dot[k % dot.size()][l % dot.size()] == '4') {
+				tint = 0.4;
+			}
+			else if (dot[k % dot.size()][l % dot.size()] == '3') {
+				tint = 0.3;
+			}
+			else if (dot[k % dot.size()][l % dot.size()] == '2') {
+				tint = 0.2;
+			}
+			else if (dot[k % dot.size()][l % dot.size()] == '1') {
+				tint = 0.1;
+			}
+			else if (dot[k % dot.size()][l % dot.size()] == '0') {
+				tint = 0.0;
+			}
+			else cout << "mistake in paintbucket function";
+
+			vec[k][l][RED]   = rSum/numO*tint;
+			vec[k][l][GREEN] = gSum/numO*tint;
+			vec[k][l][BLUE]  = bSum/numO*tint;
 		}
 	}
 	rSum = gSum = bSum = numO = 0;
@@ -72,6 +117,8 @@ void dot_image(vector<vector<vector<int>>> &vec, const vector<string>& dot) {
 	double tint = 1;
 
 	//Do the image filtering on every row and column in this image
+	//for (unsigned int i = 0; i < rows; i++) {
+		//for (unsigned int j = 0; j < cols; j++) {
 	for (unsigned int i = 0; i < rows; i++) {
 		for (unsigned int j = 0; j < cols; j++) {
 			//Assign rgb for better readability

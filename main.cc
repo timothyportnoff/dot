@@ -17,14 +17,19 @@ using namespace std;
 void filter1(vector<vector<vector<int>>> &vec);
 
 void die (string s) {
-	cout << "Program Terminated. " << s << endl;
+	cout << "Program Terminated: " << s << endl;
 	exit(1);
+}
+
+void warn (string s) {
+	cout << "Warning: " << s << endl;
+	return;
 }
 
 //This code must be run with a command line parameter, so print error and quit if they don't run it right
 void usage() {
-	cout << "INCORRECT USAGE: Needs to be called with a.out [pepe.jpg] [s,c] [diameter]\n";
-	cout << "For example, a.out /public/screenshot.jpg c 20\n";
+	cout << "INCORRECT USAGE: Needs to be called with a.out [pepe.jpg] [s,c] [dot diameter] [\"border thickness\"]\n";
+	cout << "For example, a.out /public/screenshot.jpg c 20 0\n";
 	exit(1);
 }
 
@@ -40,6 +45,7 @@ void image_to_vec(const CImg<unsigned char> &image, vector<vector<vector<int>>> 
 		}
 	}
 }
+
 //Clamp the values in vec to [0..255] then copy to image
 void vec_to_image(CImg<unsigned char> &image, vector<vector<vector<int>>> &vec) {
 	const int MAX_COLOR = 255;
@@ -58,10 +64,10 @@ void vec_to_image(CImg<unsigned char> &image, vector<vector<vector<int>>> &vec) 
 }
 
 //Makes a shape to apply to the image
-vector <string> make_dot(string dot_shape, unsigned int dot_diameter) {
+vector <string> make_dot(string dot_shape, unsigned int dot_diameter, unsigned int border_thickness) {
 	vector<string> punch;
 	if (dot_shape == "s") { // pixel pattern
-		for (unsigned int i = 0; i < dot_diameter; i++) {
+		for (size_t i = 0; i < dot_diameter; i++) {
 			string s = "";
 			for (unsigned int j = 0; j < dot_diameter; j++) {
 				//cerr << "i: " << i << " | j: " << j << endl;
@@ -78,13 +84,42 @@ vector <string> make_dot(string dot_shape, unsigned int dot_diameter) {
 		float radius = (dot_diameter / 2.0);
 
 		// for horizontal movement
-		for (int i = 0; i < dot_diameter; i++) {
+		for (size_t i = 0; i < dot_diameter; i++) {
 			string s = ""; //String to push back into punch	
-			for (int j = 0; j < dot_diameter; j++) {
+			for (size_t j = 0; j < dot_diameter; j++) {
 				dist = sqrt((i - radius) * (i - radius) + (j - radius) * (j - radius)) + 1;
 				// dist should be in the range (radius - 0.5) and (radius + 0.5) to print stars(*)
 				if (dist > radius - 0.5 && dist < radius + 0.5) { s.push_back('X'); }
+				//if (dist < radius + 0.5) { s.push_back('X'); }
 				else { s.push_back('0'); }
+			}
+			punch.push_back(s);
+		}
+	}
+	else if (dot_shape == "r") { //rings?
+		// dist represents distance to the center
+		float dist;
+		float radius = (dot_diameter / 2.0);
+
+		// for horizontal movement
+		for (size_t i = 0; i < dot_diameter; i++) {
+			string s = ""; //String to push back into punch	
+			for (size_t j = 0; j < dot_diameter; j++) {
+				dist = sqrt((i - radius) * (i - radius) + (j - radius) * (j - radius)) + 1;
+				// dist should be in the range (radius - 0.5) and (radius + 0.5) to print stars(*)
+				if (dist > radius - 0.5 && dist < radius + 0.5) { s.push_back('X'); }
+				else if (dist > radius - 2.0 && dist < radius + 0.5) { s.push_back('9'); }
+				//else if (dist > radius - 1.5 && dist < radius + 0.5) { s.push_back('8'); }
+				else if (dist > radius - 3.0 && dist < radius + 0.5) { s.push_back('8'); }
+				//else if (dist > radius - 1.5 && dist < radius + 0.5) { s.push_back('6'); }
+				else if (dist > radius - 5.0 && dist < radius + 0.5) { s.push_back('7'); }
+				//else if (dist > radius - 3.5 && dist < radius + 0.5) { s.push_back('4'); }
+				else if (dist > radius - 7.0 && dist < radius + 0.5) { s.push_back('6'); }
+				//else if (dist > radius - 4.5 && dist < radius + 0.5) { s.push_back('6'); }
+				else if (dist > radius - 9.0 && dist < radius + 0.5) { s.push_back('5'); }
+				else if (dist < radius + 1.0) { s.push_back('X'); }
+
+				else { s.push_back('0'); } //Clear
 			}
 			punch.push_back(s);
 		}
@@ -95,7 +130,9 @@ vector <string> make_dot(string dot_shape, unsigned int dot_diameter) {
 }
 
 int main(int argc, char **argv) {
-	if (argc != 5) usage(); //Check command line parameters
+
+	//Check command line parameters
+	if (argc != 5) usage(); 
 
 	//Load the image, make the dot.
 	clock_t start_time = clock();
@@ -103,15 +140,18 @@ int main(int argc, char **argv) {
 
 	//Take in argument for shape
 	string dot_shape = (argv[2]);
-	if (dot_shape != "c" and dot_shape != "s") die("Invalid dot shape");
+	if (dot_shape != "c" and dot_shape != "s" and dot_shape != "r") warn("Invalid dot shape");
 	
 	//Take in argument for diameter
 	unsigned int dot_diameter = stoi(argv[3]);
 	if (dot_diameter < 0) die("Diameter must be 0 or above.");
-	vector<string> dot = make_dot(dot_shape, dot_diameter);
 
-	//Take in arg for thickness
-	unsigned int thickness = stoi(argv[4]);
+	//Take in arg for border thickness
+	unsigned int border_thickness = stoi(argv[4]);
+	if (dot_diameter < 0 or dot_diameter > 100) die("Border must be 0 to 100.");
+	
+	//Create Dot
+	vector<string> dot = make_dot(dot_shape, dot_diameter, border_thickness);
 
 	//Set globals
 	cols = image.width();
@@ -132,7 +172,6 @@ int main(int argc, char **argv) {
 	cerr << "Dot time: " << double (end_time - start_time) / CLOCKS_PER_SEC << " secs\n";
 
 	//Save image
-	//start_time = clock();
 	vec_to_image(image, vec); //Copy from the vec to the image object
 	image.save_png("png.png"); //Use this for higher quality output
 	//image.save_jpeg("dot.jpg", 100); //Output result after filter 1
